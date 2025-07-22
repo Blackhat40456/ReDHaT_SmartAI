@@ -5,3 +5,4 @@ flask
 flask-sqlalchemy
 waitress
 pyrogram
+psycopg2
