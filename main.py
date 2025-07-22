@@ -21,6 +21,7 @@ async def handle_user_message(client: Client, message: MessageType):
     cm = ChatManager(Settings()['prompt'])
     all_msgs: list[MessageType] = []
     user_msg_count = 0
+    await client.read_chat_history(uid)
 
     async for msg in client.get_chat_history(uid, 40):
         if msg and any([message.text, message.photo, message.audio, message.caption]):
