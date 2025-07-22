@@ -1,0 +1,64 @@
+{% extends 'base.html' %}
+{% block title %}API Keys - ReDHaT Smart AI{% endblock %}
+{% block content %}
+<h3 style="text-align: center;">API Keys</h3>
+
+{% for k in key_dbs %}
+{% if loop.index == 2 %}
+<h4 style="text-align: center;">Previously Added</h4>
+{% endif %}
+<article style="position: relative;">
+  {% if k.id != 'new' %}
+  <span style="float: right;">Updated {{ k.updated }} aso</span>
+  {% endif %}
+  <form method="post">
+    <input type="hidden" name="id" value="{{ k.id }}">
+    {% if k.id != 'new' %}
+    <input type="hidden" name="provider" value="{{ k.provider }}">
+    {% endif %}
+    <label>
+      <span>Provider</span>
+      <select name="provider" class="prov_select" {% if k.id != 'new' %}disabled{% endif %}>
+        {% for p, n in PROVIDERS.items() %}
+        <option value="{{p}}" {% if k.provider == p %}selected{% endif %}>{{n}}</option>
+        {% endfor %}
+      </select>
+    </label>
+    <label>
+      <span>API Key</span>
+      <input type="text" required name="key" value="{{ k.key or '' }}" placeholder="Enter api in the format below">
+      <small class="api_hint"></small>
+    </label>
+    <div style="display: flex; gap: 16px;">
+      <button type="submit">{{ 'Add' if k.id == 'new' else 'Save' }}</button>
+      {% if k.id != 'new' %}
+      <button type="submit" name="del" value="{{ k.id }}" style="width: min-content; filter: hue-rotate(150deg);">
+        <svg style="transform: scale(1.5)" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-trash" viewBox="0 0 16 16">
+          <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0z" />
+          <path d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4zM2.5 3h11V2h-11z" />
+        </svg>
+      </button>
+      {% endif %}
+    </div>
+  </form>
+</article>
+{% endfor %}
+<style>
+  
+</style>
+{% endblock %}
+{% block footer %}
+<script>
+  var HINTS = {
+    groq: 'Just enter the damn key - No special change',
+    gemini: 'Paste the damn key here - No special change',
+    cloudflare: 'Enter in this format: <ACCOUNT_ID>:<API_TOKEN>',
+    together: 'Leave the damn key here amigo - No special change'
+  };
+  $('.prov_select').on('change', function () {
+    var hint = HINTS[$(this).val()];
+    $(this).parent().parent().find('.api_hint').text(hint);
+  });
+  [...document.querySelectorAll('.prov_select')].forEach(e => e.dispatchEvent(new Event('change')));
+</script>
+{% endblock %}

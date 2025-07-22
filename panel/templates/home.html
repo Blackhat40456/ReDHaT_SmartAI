@@ -1,0 +1,19 @@
+{% extends 'base.html' %}
+{% block title %}ReDHaT Smart AI{% endblock %}
+{% block content %}
+<h3 style="text-align: center;">Settings</h3>
+<article>
+  <form method="post">
+    <label>
+      <span style="margin-right: 16px;">Status</span>
+      <input name="enabled" type="checkbox" role="switch" {% if enabled %}checked{% endif %} />
+    </label>
+    <div style="padding-bottom: 10px"></div>
+    <label>
+      <span>System Prompt</span>
+      <textarea name="prompt" rows="20">{{prompt}}</textarea>
+    </label>
+    <button type="submit">Save</button>
+  </form>
+</article>
+{% endblock %}

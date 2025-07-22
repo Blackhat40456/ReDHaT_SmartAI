@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+{% block title %}Login - ReDHaT Smart AI{% endblock %}
+{% block content %}
+<div style="display: flex;justify-content: center;align-items: center;min-height: 100vh;">
+  <article style="max-width: 500px; width: 100%;">
+    <h3 style="text-align: center;">Login</h3>
+    <form method="post">
+      <label for="pass">Password</label>
+      <input type="password" id="pass" name="pass" required>
+      <button type="submit">Login</button>
+    </form>
+  </article>
+</div>
+{% endblock %}
