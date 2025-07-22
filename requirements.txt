@@ -4,3 +4,4 @@ asyncio
 flask
 flask-sqlalchemy
 waitress
+pyrogram
