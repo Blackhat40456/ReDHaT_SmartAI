@@ -3,7 +3,8 @@ from panel import app
 from threading import Thread
 import os, socket, time
 
-PORT = os.environ.get('PORT', 8000)
+try: PORT = int(os.environ.get('PORT'))
+except: PORT = 8000
 
 t = Thread(target=serve, kwargs=dict(app=app, port=PORT), daemon=True)
 t.start()
