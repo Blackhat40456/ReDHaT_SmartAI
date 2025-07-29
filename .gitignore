@@ -1,6 +1,12 @@
 api_data.json
 image.png
 test.py
+test.json
+test2.json
+data.json
+bangla.mp3
+harvard.wav
+text.txt
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

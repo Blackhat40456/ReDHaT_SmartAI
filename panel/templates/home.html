@@ -4,6 +4,9 @@
 <h3 style="text-align: center;">Settings</h3>
 <article>
   <form method="post">
+    <div style="display: flex; align-items: center; justify-content: center;">
+      <button type="submit" name="purge" value="yes" style="max-width: 200px;filter: hue-rotate(280deg);transform: scale(.8);">Purge Cache</button>
+    </div>
     <label>
       <span style="margin-right: 16px;">Status</span>
       <input name="enabled" type="checkbox" role="switch" {% if enabled %}checked{% endif %} />

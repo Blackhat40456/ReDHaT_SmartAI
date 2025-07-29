@@ -3,8 +3,11 @@ from flask import request, render_template, redirect, flash
 from datetime import datetime, timezone
 from threading import Thread
 from time import sleep
+from contextlib import nullcontext
 from sqlalchemy import event
-import hashlib, random
+import hashlib, random, asyncio, nest_asyncio
+from .api_checker import checkAPI
+nest_asyncio.apply()
 
 
 AUTH_HASH = hashlib.sha256(app.config['PASSWORD'].encode()).hexdigest()
@@ -15,14 +18,15 @@ PROVIDERS = dict(
     together='Together.ai'
 )
 DATA_UPDATE_ID = None
+API_CHECK_DATA = dict(running=False, data='', last_checked=None)
 
 
-def set_data():
+def set_data(with_context = True):
     def map_ignore(x):
         try: return int(x.identifier)
         except: return x.identifier.replace('@', '')
 
-    with app.app_context():
+    with app.app_context() if with_context else nullcontext():
         data_settings = Settings.query.first()
         data_api_keys = API_KEYS.query.all()
         data_ignore_list = Ignored_Accounts.query.all()
@@ -82,6 +86,10 @@ def home():
     if not is_logedin(): return redirect('/login')
     dt = Settings.query.first()
     if request.method == 'POST':
+        if request.form.get('purge') == 'yes':
+            set_data(False)
+            flash('Cache Refreshed Successfully', 'success')
+            return redirect('/')
         enabled = request.form.get('enabled') == 'on'
         prompt = request.form.get('prompt', '')
         dt.enabled = enabled
@@ -123,6 +131,22 @@ def keys():
     kdb = [dict(id='new', provider=None, key=None, updated=None), *kdb]
     return render_template('keys.html', key_dbs=kdb, PROVIDERS=PROVIDERS)
 
+@app.route('/keys/check', methods=['GET', 'POST'])
+def keys_check():
+    def tfn(x):
+        asyncio.run(checkAPI(x, API_CHECK_DATA))
+
+    if request.method == 'POST':
+        ak = API_KEYS.query.all()
+        all_keys = list(map(lambda x: (x.provider, x.key), ak))
+        Thread(target=tfn, args=(all_keys,), daemon=True).start()
+        flash('Checking process is starting', 'success')
+        return redirect('/keys/check')
+    
+    modACD = API_CHECK_DATA.copy()
+    if lc := modACD.get('last_checked'): modACD['last_checked'] = time_ago_short(lc) + ' ago'
+        
+    return render_template('keys_check.html', fn=modACD)
 
 @app.route('/ignore', methods=['GET', 'POST'])
 def ignore():

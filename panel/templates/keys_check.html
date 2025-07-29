@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+{% block title %}API Check - ReDHaT Smart AI{% endblock %}
+{% block content %}
+<h3 style="text-align: center;">API Check</h3>
+
+<form method="post" style="display: flex; align-items: center; justify-content: center; flex-direction: column;">
+  <button type="submit" style="max-width: 240px;transform: scale(.8);">Start Checking</button>
+  <h5 style="text-align: center;">Status: {{ 'Running' if fn['running'] else 'Idle' }}</h5>
+</form>
+
+{% if fn['data'] %}
+<article style="position: relative;">
+  <small style="position: absolute; right: 3px; top: -3px;">Updated: {{ fn.get('last_checked') or 'never' }}</small>
+  <pre><code>{{ fn['data'] }}</code></pre>
+</article>
+{% endif %}
+
+<style>
+</style>
+{% endblock %}
+{% block footer %}
+<script>
+</script>
+{% endblock %}

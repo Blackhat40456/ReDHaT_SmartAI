@@ -7,3 +7,7 @@ waitress
 pyrogram
 psycopg2
 tgcrypto
+tiktoken
+nest_asyncio
+langdetect
+indic-nlp-library
