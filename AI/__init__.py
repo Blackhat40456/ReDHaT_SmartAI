@@ -22,13 +22,13 @@ for t in tools:
     t['function']['name'] = t['function']['name'].__name__
 
 
-async def check_if_tool_and_run(chat: ChatManager, all_keys: list[tuple[str, str]], resp):
+async def check_if_tool_and_run(chat: ChatManager, all_keys: list[tuple[str, str]], resp, bot):
     if isinstance(resp, str):
         if 'check_uid_status' in resp:
             nums = re.findall(r'\d{7,12}', resp)
             uid = int(nums[0]) if nums else None
             if uid:
-                return await check_if_tool_and_run(chat, all_keys, [dict(function=dict(name='check_uid_status', arguments=json.dumps(dict(uid=uid))), type='function', id=f'fn___ds{random.randint(1000, 9999)}')])
+                return await check_if_tool_and_run(chat, all_keys, [dict(function=dict(name='check_uid_status', arguments=json.dumps(dict(uid=uid))), type='function', id=f'fn___ds{random.randint(1000, 9999)}')], bot)
             else:
                 print('Invalid UID in text plain', resp)
         else:
@@ -40,13 +40,13 @@ async def check_if_tool_and_run(chat: ChatManager, all_keys: list[tuple[str, str
         
         chat.addToolCalls(resp)
         for c in resp:
-            tr = await tool_funcs[c['function']['name']](**json.loads(c['function']['arguments']))
+            tr = await tool_funcs[c['function']['name']](bot, **json.loads(c['function']['arguments']))
             print(tr)
             chat.addToolResponse(c['id'], tr, c['function']['name'])
-        return await getAIResponse(chat, all_keys, ['together'])
+        return await getAIResponse(chat, all_keys, bot, ['together'])
 
 
-async def getAIResponse(chat: ChatManager, all_keys: list[tuple[str, str]], excludes: list = []):
+async def getAIResponse(chat: ChatManager, all_keys: list[tuple[str, str]], bot = None, excludes: list = []):
     keys = all_keys.copy()
     while keys:
         provider, api_key = keys.pop(keys.index(choice(keys)))
@@ -54,7 +54,7 @@ async def getAIResponse(chat: ChatManager, all_keys: list[tuple[str, str]], excl
         # print('Trying on', provider)
         try:
             resp = await FUNCTIONS[provider](chat, api_key, tools)
-            return await check_if_tool_and_run(chat, all_keys, resp)
+            return await check_if_tool_and_run(chat, all_keys, resp, bot)
         except KeyError:
             # print(f'Provider {provider} is unknown')
             pass

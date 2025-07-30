@@ -91,7 +91,7 @@ async def handle_user_message(client: Client, message: MessageType):
 
         
         if PENDING_MESSAGES[uid] != rand: return
-        reply = await getAIResponse(cm, ApiKeys())
+        reply = await getAIResponse(cm, ApiKeys(), client)
         reply = (reply or "").strip() or "I'm busy right now..."
         if PENDING_MESSAGES[uid] != rand: return
         for i, r in enumerate(split(reply)):

@@ -158,8 +158,9 @@ def ignore():
             except:
                 if not idt.startswith('@'):
                     idt = '@' + idt
-            db.session.add(Ignored_Accounts(identifier=idt))
-            db.session.commit()
+            if not Ignored_Accounts.query.filter_by(identifier=idt).first():
+                db.session.add(Ignored_Accounts(identifier=idt))
+                db.session.commit()
             flash(f'"{idt}" added to ignore list', 'success')
 
         ig_id = request.form.get('id', type=int)
