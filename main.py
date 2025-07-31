@@ -11,7 +11,7 @@ nest_asyncio.apply()
 
 
 MAX_USER_MSG = 20
-REDHAT_SESSION = "BQFYoXsAcpzdShVK7yYw4yQv-sBORcN1XEW3RcZOmGu9gHCebk8qOqcedpqkBsETZycsPa77qudni7PfrI_whTZgvU-GRykNaKsHozKQRsgWK8puPARpK9HBE8nqBLDN4MoUjnXeGv4FhNp5U7rlTJ1Wm8eBGuHbocNilPFoWmNHqZhC2Y_eXpBsmVXxy183jG7bnaJEMXLDUzG20-J8vMAL03n3AKKVtYkCgYFstAMAQtgejR-AEm50oubEYbYkV8j02dD9PuxD6f9E8Tioce2L2KmrhTfFZxcKbvBIp51Mk9csOIxmNWkivYtOtpU1PIf3GBbgjRwhuquSYKyGiTBBR7B69gAAAAFXwLNAAA"
+REDHAT_SESSION = "BQFYoXsAMH0Dhz4XKiZhJ_syLRPwIvTPr7SAh_277wEHZBmC6796uqTKq2ZWAa4kCouHSlzbxlMGowAARlHfc_lj8nHBSjNviEtemrkL3272uxcXhQSjW0Lsb2FevGFVE0-9OebvODNBsz0MLWfD022pMTYPQI66wBGpQWr-GQKwJZVOUUSAwRRWVDa3IQZ1tiuZ8LH3JVjD1i3d4DP_anveewdy1DAqsTTDNlr_Y4bFDiVdmipjw8Jxb5MyPfPhbRo_hJCuPRV177eOL--LudwyO4vaMjxztgYfyD9l1INAT-BCbFZwqCZaq0DlcPG3NCpubk99yi9RIQF3YdXyg16lKw9S2AAAAAFXwLNAAA"
 LUCKY_SESSION = "BQGNedwAdo4zugl9OB9kVuwumjx_3edEtAyXx481YKk-WRqBloxL4RuH4EM4r-ML5UNArQkk-spHTpMbKu958kjSUTwzNtoUZSVlA6gkL9vxxxGyoR8pd-l7wLEG6eMmMXETfqU96_d_aEKicDZTBzQT0qSi53j58taTOfusFlZphRl2kj2E4pU5zv4Z4xnY2m_lOpH5N4RfTdYTX68pb3EEppogEyFW1xY7LFLogUdooCyDaOHE2R4hrFEqj1CXQLk6EMyPQAZhdl78ViDB2mcVJN-Om5F0Za1YQXhVSGhc2KXF70QNysFskABal6zIjGuOvJwdsiLa8JMPxEWmCU40EZlTiwAAAAHOVTs6AA"
 bot = Client('ReDHaT', 26048988, "cbe8e0074a0c1c6ff38fe30284f5914e", session_string=REDHAT_SESSION)
 
@@ -39,7 +39,7 @@ async def handle_user_message(client: Client, message: MessageType):
     username = message.from_user.username
     name = f"{message.from_user.first_name or ''} {message.from_user.last_name or ''}"
     if not Settings()['enabled']: return
-    if not any([message.text, message.voice, message.photo, message.caption, message.audio]): return
+    if not any([message.text, message.voice, message.photo, message.caption, message.audio, message.video, message.video_note, message.sticker, message.animation]): return
     if uid in IgnoreList() or username in IgnoreList(): return
     if message.forward_from and message.forward_from.is_bot: return
 
@@ -50,9 +50,10 @@ async def handle_user_message(client: Client, message: MessageType):
     rand = random.random()
     PENDING_MESSAGES[uid] = rand
     await asyncio.sleep(random.randint(7, 15))
-    if PENDING_MESSAGES[uid] != rand: return
     await client.read_chat_history(uid)
     await asyncio.sleep(random.randint(2, 6))
+    if message.video or message.video_note: return await message.reply_text('💬 Please send videos to my WhatsApp instead of Telegram: https://wa.me/18432245316')
+    if await react_if_eligible(message): return
     if PENDING_MESSAGES[uid] != rand: return
 
     cm = ChatManager(Settings()['prompt'] + f'\n\nUser\'s Account Name is "{name}"', ApiKeys())
@@ -62,7 +63,7 @@ async def handle_user_message(client: Client, message: MessageType):
 
     async with typing_status(message):
         async for msg in client.get_chat_history(uid, 40):
-            if msg and any([message.text, message.photo, message.audio, message.caption, message.voice]):
+            if msg and any([message.text, message.photo, message.audio, message.caption, message.voice, message.sticker, message.animation]):
                 if msg.from_user and msg.from_user.id == uid:
                     user_msg_count += 1
                 all_msgs.append(msg)
@@ -71,6 +72,8 @@ async def handle_user_message(client: Client, message: MessageType):
         
         for msg in reversed(all_msgs):
             role = 'user' if msg.from_user and msg.from_user.id == uid else 'assistant'
+            if msg.sticker or msg.animation:
+                msg.text = 'Hello!'
             if t := msg.text or msg.caption:
                 if reply_id := msg.reply_to_message_id:
                     reply_msg = next((mg for mg in all_msgs if mg.id == reply_id), None)
@@ -116,5 +119,21 @@ async def typing_status(message: MessageType):
         running = False
 
 
+async def react_if_eligible(message: MessageType):
+    if not (message.text and len(message.text) < 13 and any(i in message.text.lower() for i in ['ok', 'wait', 'tnx', 'thank', 'welq', 'welc', 'bye', 'night', 'hmm', 'hm'])): return
+    await message.react(random.choice(['❤️', '🥰', '😍']))
+    return True
 
+
+async def keepalive():
+    while True:
+        await asyncio.sleep(60)
+        try:
+            mp = await bot.get_me()
+            # print("Keepalive OK.", mp.username)
+        except Exception as e:
+            print("Keepalive failed:", e)
+
+asyncio.get_event_loop().create_task(keepalive())
 bot.run()
+
