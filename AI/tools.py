@@ -12,12 +12,19 @@ async def is_uid_verified(bot: Client, uid: int):
 
 
 async def get_deposit_amount(bot: Client, uid: int):
-    async for msg in bot.search_messages('@ReDHaT4O4_redep_bot', str(uid), limit=1):
-        try: return float(msg.text.strip().split(':')[-1].strip())
+    total_dep = 0.00
+    i = 0
+    async for msg in bot.search_messages('@ReDHaT4O4_redep_bot', str(uid)):
+        i += 1
+        try:
+            ck = float(msg.text.strip().split(':')[-1].strip())
+            total_dep += ck
+            if not ck < 5 and i == 1:
+                return ck, False
         except IndexError: pass
         except TypeError: pass
         except ValueError: pass
-    return 0.00
+    return total_dep, True
 
 
 async def check_uid_status(bot: Client, uid: int):
@@ -26,8 +33,11 @@ async def check_uid_status(bot: Client, uid: int):
     except TypeError: return "UID must be a number. Ask user to give UID"
     if not await is_uid_verified(bot, uid):
         return f'UID ({uid}) is not verified. Registration needed.'
-    if (ds := await get_deposit_amount(bot, uid)) < 5:
-        return f'UID ({uid}) is not verified because deposit is {ds}$ which is less than 5$. More deposit needed.'
+    ds, is_total = await get_deposit_amount(bot, uid)
+    if is_total and ds < 8:
+        return f'UID ({uid}) is not verified because "total" deposit is {ds}$ which is less than 8$. More deposit needed.'
+    if not is_total and ds < 5:
+        return f'UID ({uid}) is not verified because "latest" deposit is {ds}$ which is less than 5$. More deposit needed.'
     return f'UID ({uid}) is verified and deposit is {ds}$. You are good to go.'
     
 
