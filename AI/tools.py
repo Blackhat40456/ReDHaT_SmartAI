@@ -32,19 +32,16 @@ async def check_uid_status(bot: Client, user_id: int, uid: int):
 
 async def forward_msg(bot: Client, user_id: int, link: str):
     try:
-        lp = link.split('/')
+        lp = link.split('?')[0].split('/')
         cid, mid = lp[3], int(lp[4])
     except: return 'Invalid Message Link, should be like: https://t.me/<slug>/<id>'
     try:
         msg = await bot.get_messages(cid, mid)
 
         if msg.media_group_id:
-            media_group_msgs = await bot.get_media_group(cid, mid)
-            msg_ids = [m.message_id for m in media_group_msgs]
-
-            await bot.forward_messages(chat_id=user_id, from_chat_id=cid, message_ids=msg_ids)
+            await bot.copy_media_group(user_id, cid, mid)
         else:
-            await bot.forward_messages(chat_id=user_id, from_chat_id=cid, message_ids=mid)
+            await bot.copy_message(user_id, cid, mid)
         return 'Message Forwarded'
     except Exception as err:
         print(err, flush=True)
