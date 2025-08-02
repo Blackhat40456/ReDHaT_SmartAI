@@ -135,6 +135,14 @@ async def keepalive():
         except Exception as e:
             print("Keepalive failed:", e, flush=True)
 
+
+async def test():
+    await bot.start()
+    async for i in bot.get_chat_history('allinfobot6'):
+        i: MessageType = i
+        print(bool(i.photo), bool(i.video), i.text, i.caption, i.media_group_id)
+    await bot.stop()
+
 asyncio.get_event_loop().create_task(keepalive())
 bot.run()
 
