@@ -57,6 +57,7 @@ async def handle_user_message(client: Client, message: MessageType):
     if PENDING_MESSAGES[uid] != rand: return
 
     cm = ChatManager(Settings()['prompt'] + f'\n\nUser\'s Account Name is "{name}"', ApiKeys())
+    cm.user_id = uid
     all_msgs: list[MessageType] = []
     user_msg_count = 0
     img_count = 0
@@ -82,12 +83,12 @@ async def handle_user_message(client: Client, message: MessageType):
                 if msg.forward_from:
                     t = f'Forwarded: "{t}"'
                 cm.addText(role, t)
-            if msg.photo and img_count < 4:
+            if role == 'user' and msg.photo and img_count < 4:
                 img_data: io.BytesIO = await msg.download(in_memory=True)
                 img_bytes = img_data.getvalue()
                 await cm.addImages(role, img_bytes)
                 img_count += 1
-            if msg.audio or msg.voice:
+            if role == 'user' and (msg.audio or msg.voice):
                 audio_data: io.BytesIO = await msg.download(in_memory=True)
                 audio_bytes = audio_data.getvalue()
                 await cm.addAudio(role, audio_bytes)
@@ -132,7 +133,7 @@ async def keepalive():
             mp = await bot.get_me()
             # print("Keepalive OK.", mp.username)
         except Exception as e:
-            print("Keepalive failed:", e)
+            print("Keepalive failed:", e, flush=True)
 
 asyncio.get_event_loop().create_task(keepalive())
 bot.run()

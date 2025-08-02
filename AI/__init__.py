@@ -40,8 +40,8 @@ async def check_if_tool_and_run(chat: ChatManager, all_keys: list[tuple[str, str
         
         chat.addToolCalls(resp)
         for c in resp:
-            tr = await tool_funcs[c['function']['name']](bot, **json.loads(c['function']['arguments']))
-            print(tr)
+            tr = await tool_funcs[c['function']['name']](bot, chat.user_id, **json.loads(c['function']['arguments']))
+            print(tr, flush=True)
             chat.addToolResponse(c['id'], tr, c['function']['name'])
         return await getAIResponse(chat, all_keys, bot, ['together'])
 

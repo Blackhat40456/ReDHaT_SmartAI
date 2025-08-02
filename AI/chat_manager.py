@@ -18,6 +18,7 @@ class UrlLike(str): pass
 class ChatManager:
     def __init__(self, system_prompt: str = None, all_keys: list[tuple[str, str]] = None):
         self.messages = []
+        self.user_id = None
         self.__funcNames = dict()
         self.has_image = False
         self.all_keys = all_keys

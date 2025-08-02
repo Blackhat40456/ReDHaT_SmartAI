@@ -1,4 +1,3 @@
-from json import dumps
 from pyrogram import Client
 import asyncio
 import nest_asyncio
@@ -20,7 +19,7 @@ async def get_deposit_amount(bot: Client, uid: int):
     return 0.00
 
 
-async def check_uid_status(bot: Client, uid: int):
+async def check_uid_status(bot: Client, user_id: int, uid: int):
     try: int(uid)
     except ValueError: return "UID must be a number. Ask user to give UID"
     except TypeError: return "UID must be a number. Ask user to give UID"
@@ -30,6 +29,19 @@ async def check_uid_status(bot: Client, uid: int):
         return f'UID ({uid}) is not verified because latest deposit is {ds}$ which is less than 5$. More deposit needed.'
     return f'UID ({uid}) is verified and deposit is {ds}$. You are good to go.'
     
+
+async def forward_msg(bot: Client, user_id: int, link: str):
+    try:
+        lp = link.split('/')
+        cid, mid = lp[3], lp[4]
+    except: return 'Invalid Message Link, should be like: https://t.me/<slug>/<id>'
+    try:
+        await bot.forward_messages(user_id, cid, mid)
+        return 'Message Forwarded'
+    except Exception as err:
+        print(err, flush=True)
+        return 'Cannot forward, Internal Error.'
+
 
 tools = [
     {
@@ -46,6 +58,23 @@ tools = [
                     }
                 },
                 "required": ["uid"]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": forward_msg,
+            "description": "Takes a message link, scrapes its content and forwards to user",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "link": {
+                        "type": 'string',
+                        "description": "The message link to forward to user. Ex: https://t.me/<slug>/<id>"
+                    }
+                },
+                "required": ["link"]
             }
         }
     }
