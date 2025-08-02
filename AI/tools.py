@@ -33,7 +33,7 @@ async def check_uid_status(bot: Client, user_id: int, uid: int):
 async def forward_msg(bot: Client, user_id: int, link: str):
     try:
         lp = link.split('/')
-        cid, mid = lp[3], lp[4]
+        cid, mid = lp[3], int(lp[4])
     except: return 'Invalid Message Link, should be like: https://t.me/<slug>/<id>'
     try:
         await bot.forward_messages(user_id, cid, mid)
