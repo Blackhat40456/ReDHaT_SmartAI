@@ -49,9 +49,9 @@ async def handle_user_message(client: Client, message: MessageType):
 
     rand = random.random()
     PENDING_MESSAGES[uid] = rand
-    await asyncio.sleep(random.randint(7, 15))
+    await asyncio.sleep(random.randint(8, 18))
     await client.read_chat_history(uid)
-    await asyncio.sleep(random.randint(2, 6))
+    await asyncio.sleep(random.randint(4, 8))
     if message.video or message.video_note: return await message.reply_text('💬 Please send videos to my WhatsApp instead of Telegram:https://wa.me/12242268160')
     if await react_if_eligible(message): pass
     if PENDING_MESSAGES[uid] != rand: return
