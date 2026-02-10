@@ -15,7 +15,7 @@ MAX_USER_MSG = 20
 REDHAT_SESSION = "BQFYoXsAGNR3jcMFfAY0UJCjssExw7TD6fKFlssVD1N5WCzlOpMBY0F1VF6W41axwj7cupDFJ1T9EeMEg_80qNy5AU0jil6XXkEuneDhooAYiAzDJKpH3V3KJoeX2iMMOgJT5tS96MaZOncYpg0UTBlx1Y0TeUjWglf1xtyqSQO3jgmkHTUS56jY-gTPflncJYsKRdPuissmF8OItjfQhbqx5xJWLBwJ0SfluAslpCdouZXfpbCqwxNpCsdNoYFKXshIKNcmTWSUSLyq1PjUaWPX41O7j4mxcKxUNJQSKNVSrYnMBjgYRx8Q19JoCiDGyY-oNfx7bKkFlQ_P4pQxXpQeghnihAAAAAFXwLNAAA"
 LUCKY_SESSION = "BQGNedwAdo4zugl9OB9kVuwumjx_3edEtAyXx481YKk-WRqBloxL4RuH4EM4r-ML5UNArQkk-spHTpMbKu958kjSUTwzNtoUZSVlA6gkL9vxxxGyoR8pd-l7wLEG6eMmMXETfqU96_d_aEKicDZTBzQT0qSi53j58taTOfusFlZphRl2kj2E4pU5zv4Z4xnY2m_lOpH5N4RfTdYTX68pb3EEppogEyFW1xY7LFLogUdooCyDaOHE2R4hrFEqj1CXQLk6EMyPQAZhdl78ViDB2mcVJN-Om5F0Za1YQXhVSGhc2KXF70QNysFskABal6zIjGuOvJwdsiLa8JMPxEWmCU40EZlTiwAAAAHOVTs6AA"
 bot = Client('ReDHaT', 26048988, "cbe8e0074a0c1c6ff38fe30284f5914e", session_string=REDHAT_SESSION)
-
+dop = random.random()
 
 Settings = lambda: app.config['AI_SETTINGS']
 ApiKeys = lambda: app.config['AI_API_KEYS']
@@ -144,7 +144,7 @@ async def check_unread(my_id: int):
         msg = dialog.top_message
         if msg.from_user.id == my_id: continue
         if msg.date > minTime: continue
-        print(f"Found Unread Message #{msg.id}: `{msg.text}` replying...", flush=True)
+        print(f"Found Unread Message #{msg.id}: `{msg.text}` {dop} replying...", flush=True)
         asyncio.get_event_loop().create_task(handle_user_message(bot, msg))
 
 
