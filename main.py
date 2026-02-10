@@ -1,7 +1,7 @@
 from pyrogram import Client, filters
 from pyrogram.types import Message as MessageType, Dialog as DialogType
 from pyrogram.enums import ChatAction, ChatType
-from pyrogram.raw import functions, base
+from pyrogram.raw import functions, types
 from AI import ChatManager, getAIResponse
 from contextlib import asynccontextmanager
 from sentence_splitter import split
@@ -157,9 +157,10 @@ async def keepalive():
             if now - lastRun > timedelta(minutes=3):
                 # await check_unread(mp.id)
 
+                r = await bot.invoke(functions.messages.update_dialog_filter.UpdateDialogFilter(id=5, filter=types.dialog_filter.DialogFilter(id=5, title="Unread (SmartAI)", pinned_peers=[], include_peers=[], exclude_peers=[], contacts=True, non_contacts=True, groups=False, broadcasts=False, bots=False, exclude_muted=False, exclude_read=True, exclude_archived=False, emoticon='rocket')))
+                print(r)
                 r = await bot.invoke(functions.messages.get_dialog_filters.GetDialogFilters())
                 print(r)
-                print(r.filters)
 
                 lastRun = now
         except Exception as e:
