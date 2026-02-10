@@ -1,9 +1,10 @@
 from pyrogram import Client, filters
-from pyrogram.types import Message as MessageType
-from pyrogram.enums import ChatAction
+from pyrogram.types import Message as MessageType, Dialog as DialogType
+from pyrogram.enums import ChatAction, ChatType
 from AI import ChatManager, getAIResponse
 from contextlib import asynccontextmanager
 from sentence_splitter import split
+from datetime import datetime, timedelta
 from web import app
 import io, asyncio, random, json
 import nest_asyncio
@@ -126,14 +127,40 @@ async def react_if_eligible(message: MessageType):
     return True
 
 
+async def check_unread():
+    mp = await bot.get_me()
+    minTime = datetime.now() - timedelta(minutes=15)
+    async for dxx in bot.get_dialogs():
+        dialog: DialogType = dxx
+        isUnread = dialog.unread_messages_count > 0
+        if not isUnread: continue
+        # Manually filtering: filters.private & ~filters.me & ~filters.bot
+        isPrivate = dialog.chat.type == ChatType.PRIVATE
+        if not isPrivate: continue
+        isBot = dialog.chat.type == ChatType.BOT
+        if isBot: continue
+        isMe = dialog.chat.id == mp.id
+        if isMe: continue
+
+        msg = dialog.top_message
+        if msg.from_user.id == mp.id: continue
+        if msg.date > minTime: continue
+        print(f"Found Unread Message: `{msg.text}` replying...", flush=True)
+        asyncio.get_event_loop().create_task(handle_user_message(bot, msg))
+
+
 async def keepalive():
     while True:
         await asyncio.sleep(60)
         try:
-            mp = await bot.get_me()
-            # print("Keepalive OK.", mp.username)
+            await check_unread()
         except Exception as e:
-            print("Keepalive failed:", e, flush=True)
+            print("Error Checking Unread Message:", e, flush=True)
+        # try:
+        #     mp = await bot.get_me()
+        #     # print("Keepalive OK.", mp.username)
+        # except Exception as e:
+        #     print("Keepalive failed:", e, flush=True)
 
 
 async def test():
