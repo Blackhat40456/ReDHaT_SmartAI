@@ -157,8 +157,10 @@ async def keepalive():
             if now - lastRun > timedelta(minutes=3):
                 # await check_unread(mp.id)
 
-                r = await bot.invoke(functions.messages.get_dialogs.GetDialogs(offset_date=0, offset_id=0, offset_peer=types.input_peer_empty.InputPeerEmpty(), limit=100, hash=0, folder_id=5))
-                print(r)
+                r = await bot.invoke(functions.messages.get_dialogs.GetDialogs(offset_date=0, offset_id=0, offset_peer=types.input_peer_empty.InputPeerEmpty(), limit=100, hash=0, folder_id=0))
+                print('='*20, r)
+                r = await bot.invoke(functions.messages.get_dialogs.GetDialogs(offset_date=0, offset_id=0, offset_peer=types.input_peer_empty.InputPeerEmpty(), limit=100, hash=0, folder_id=1))
+                print('+'*20, r)
 
                 lastRun = now
         except Exception as e:
