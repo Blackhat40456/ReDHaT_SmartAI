@@ -132,7 +132,7 @@ async def check_unread(my_id: int):
     a = time.time()
     async for dxx in bot.get_dialogs():
         i += 1
-        print(time.time() - a, 'sec for i:', i)
+        print(f"{(time.time() - a):.2f}", 'sec for i:', i)
         a = time.time()
         dialog: DialogType = dxx
         isUnread = dialog.unread_messages_count > 0
