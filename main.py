@@ -127,49 +127,33 @@ async def react_if_eligible(message: MessageType):
     return True
 
 
-async def check_unread(my_id: int):
-    minTime = datetime.now() - timedelta(minutes=15)
-    async for dxx in bot.get_dialogs():
-        dialog: DialogType = dxx
-        isUnread = dialog.unread_messages_count > 0
-        if not isUnread: continue
-        # Manually filtering: filters.private & ~filters.me & ~filters.bot
-        isPrivate = dialog.chat.type == ChatType.PRIVATE
-        if not isPrivate: continue
-        isBot = dialog.chat.type == ChatType.BOT
-        if isBot: continue
-        isMe = dialog.chat.id == my_id
-        if isMe: continue
+# async def check_unread(my_id: int):
+#     minTime = datetime.now() - timedelta(minutes=15)
+#     async for dxx in bot.get_dialogs():
+#         dialog: DialogType = dxx
+#         isUnread = dialog.unread_messages_count > 0
+#         if not isUnread: continue
+#         # Manually filtering: filters.private & ~filters.me & ~filters.bot
+#         isPrivate = dialog.chat.type == ChatType.PRIVATE
+#         if not isPrivate: continue
+#         isBot = dialog.chat.type == ChatType.BOT
+#         if isBot: continue
+#         isMe = dialog.chat.id == my_id
+#         if isMe: continue
 
-        msg = dialog.top_message
-        if msg.from_user.id == my_id: continue
-        if msg.date > minTime: continue
-        asyncio.get_event_loop().create_task(handle_user_message(bot, msg))
+#         msg = dialog.top_message
+#         if msg.from_user.id == my_id: continue
+#         if msg.date > minTime: continue
+#         asyncio.get_event_loop().create_task(handle_user_message(bot, msg))
 
 
 async def keepalive():
-    lastRun = datetime(2000, 1, 1)
     while True:
         await asyncio.sleep(60)
         try:
             mp = await bot.get_me()
-            now = datetime.now()
-            if now - lastRun > timedelta(minutes=3):
-                # await check_unread(mp.id)
-
-                r = await bot.invoke(functions.messages.get_dialogs.GetDialogs(offset_date=0, offset_id=0, offset_peer=types.input_peer_empty.InputPeerEmpty(), limit=100, hash=0, folder_id=0))
-                print('='*20, r)
-                r = await bot.invoke(functions.messages.get_dialogs.GetDialogs(offset_date=0, offset_id=0, offset_peer=types.input_peer_empty.InputPeerEmpty(), limit=100, hash=0, folder_id=1))
-                print('+'*20, r)
-
-                lastRun = now
         except Exception as e:
-            print("Error Checking Unread Message:", e, flush=True)
-        # try:
-        #     mp = await bot.get_me()
-        #     # print("Keepalive OK.", mp.username)
-        # except Exception as e:
-        #     print("Keepalive failed:", e, flush=True)
+            print("Error KeepAlive:", e, flush=True)
 
 
 async def test():
