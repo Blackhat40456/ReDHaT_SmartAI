@@ -1,6 +1,7 @@
 from pyrogram import Client, filters
 from pyrogram.types import Message as MessageType, Dialog as DialogType
 from pyrogram.enums import ChatAction, ChatType
+from pyrogram.raw import functions, base
 from AI import ChatManager, getAIResponse
 from contextlib import asynccontextmanager
 from sentence_splitter import split
@@ -125,15 +126,10 @@ async def react_if_eligible(message: MessageType):
     await message.react(random.choice(['❤️', '🥰', '😍']))
     return True
 
-import time
+
 async def check_unread(my_id: int):
     minTime = datetime.now() - timedelta(minutes=15)
-    i = -1
-    a = time.time()
     async for dxx in bot.get_dialogs():
-        i += 1
-        print(f"{(time.time() - a):.2f}", 'sec for i:', i)
-        a = time.time()
         dialog: DialogType = dxx
         isUnread = dialog.unread_messages_count > 0
         if not isUnread: continue
@@ -148,9 +144,7 @@ async def check_unread(my_id: int):
         msg = dialog.top_message
         if msg.from_user.id == my_id: continue
         if msg.date > minTime: continue
-        print(f"Found {i} Unread Message #{msg.id} from {msg.from_user.username}: `{msg.text}` replying...", flush=True)
         asyncio.get_event_loop().create_task(handle_user_message(bot, msg))
-        a = time.time()
 
 
 async def keepalive():
@@ -161,7 +155,12 @@ async def keepalive():
             mp = await bot.get_me()
             now = datetime.now()
             if now - lastRun > timedelta(minutes=3):
-                await check_unread(mp.id)
+                # await check_unread(mp.id)
+
+                r = await bot.invoke(functions.messages.get_dialog_filters.GetDialogFilters())
+                print(r)
+                print(r.filters)
+
                 lastRun = now
         except Exception as e:
             print("Error Checking Unread Message:", e, flush=True)
