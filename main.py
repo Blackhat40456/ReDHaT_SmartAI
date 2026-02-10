@@ -157,9 +157,7 @@ async def keepalive():
             if now - lastRun > timedelta(minutes=3):
                 # await check_unread(mp.id)
 
-                r = await bot.invoke(functions.messages.update_dialog_filter.UpdateDialogFilter(id=5, filter=types.dialog_filter.DialogFilter(id=5, title="Unread (AI)", pinned_peers=[], include_peers=[], exclude_peers=[], contacts=True, non_contacts=True, groups=False, broadcasts=False, bots=False, exclude_muted=False, exclude_read=True, exclude_archived=False, emoticon='rocket')))
-                print(r)
-                r = await bot.invoke(functions.messages.get_dialog_filters.GetDialogFilters())
+                r = await bot.invoke(functions.messages.get_dialogs.GetDialogs(offset_date=0, offset_id=0, offset_peer=types.input_peer_empty.InputPeerEmpty(), limit=100, hash=0, folder_id=5))
                 print(r)
 
                 lastRun = now
