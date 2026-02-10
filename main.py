@@ -125,11 +125,13 @@ async def react_if_eligible(message: MessageType):
     await message.react(random.choice(['❤️', '🥰', '😍']))
     return True
 
-
+import time
 async def check_unread(my_id: int):
     minTime = datetime.now() - timedelta(minutes=15)
     i = 0
+    a = time.time()
     async for dxx in bot.get_dialogs():
+        print(time.time() - a, 'sec for i:', i)
         dialog: DialogType = dxx
         isUnread = dialog.unread_messages_count > 0
         if not isUnread: continue
@@ -147,6 +149,7 @@ async def check_unread(my_id: int):
         print(f"Found {i} Unread Message #{msg.id} from {msg.from_user.username}: `{msg.text}` replying...", flush=True)
         asyncio.get_event_loop().create_task(handle_user_message(bot, msg))
         i += 1
+        a = time.time()
 
 
 async def keepalive():
