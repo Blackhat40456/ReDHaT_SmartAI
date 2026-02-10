@@ -144,7 +144,7 @@ async def check_unread(my_id: int):
         msg = dialog.top_message
         if msg.from_user.id == my_id: continue
         if msg.date > minTime: continue
-        print(f"Found Unread Message: `{msg.text}` replying...", flush=True)
+        print(f"Found Unread Message #{msg.id}: `{msg.text}` replying...", flush=True)
         asyncio.get_event_loop().create_task(handle_user_message(bot, msg))
 
 
