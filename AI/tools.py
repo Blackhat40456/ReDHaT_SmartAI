@@ -25,7 +25,7 @@ async def check_uid_status(bot: Client, user_id: int, uid: int):
     except TypeError: return "UID must be a number. Ask user to give UID"
     if not await is_uid_verified(bot, uid):
         return f'UID ({uid}) is not verified. Registration needed.'
-    if (ds := await get_deposit_amount(bot, uid)) < 5:
+    if (ds := await get_deposit_amount(bot, uid)) < 10:
         return f'UID ({uid}) is not verified because latest deposit is {ds}$ which is less than 10$. More deposit needed.'
     return f'UID ({uid}) is verified and deposit is {ds}$. You are good to go.'
     
