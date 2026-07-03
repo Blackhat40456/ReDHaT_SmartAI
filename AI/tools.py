@@ -5,13 +5,13 @@ nest_asyncio.apply()
 
 
 async def is_uid_verified(bot: Client, uid: int):
-    async for msg in bot.search_messages('@ReDHaT4O4_bot', str(uid), limit=1):
+    async for msg in bot.search_messages('@Reg_Notify_one_bot', str(uid), limit=1):
         return True
     return False
 
 
 async def get_deposit_amount(bot: Client, uid: int):
-    async for msg in bot.search_messages('@ReDHaT4O4_redep_bot', str(uid), limit=1):
+    async for msg in bot.search_messages('@Dp_notify55_bot', str(uid), limit=1):
         try: return float(msg.text.strip().split(':')[-1].strip())
         except IndexError: pass
         except TypeError: pass
