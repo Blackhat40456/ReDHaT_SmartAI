@@ -127,6 +127,30 @@ async def react_if_eligible(message: MessageType):
     return True
 
 
+async def process_unread_messages():
+    """Catch up on unread private DMs — called when AI replying is turned ON
+    (from OFF), so messages that piled up while it was off still get a reply,
+    no matter how old they are."""
+    my_id = (await bot.get_me()).id
+    processed = 0
+    async for dialog in bot.get_dialogs():
+        dialog: DialogType = dialog
+        try:
+            if dialog.unread_messages_count <= 0: continue
+            if dialog.chat.type != ChatType.PRIVATE: continue
+            if dialog.chat.id == my_id: continue
+            top_msg = dialog.top_message
+            if not top_msg or not top_msg.from_user: continue
+            if top_msg.from_user.id == my_id: continue  # last message in this chat was already sent by us
+            if top_msg.from_user.is_bot: continue
+
+            asyncio.create_task(handle_user_message(bot, top_msg))
+            processed += 1
+        except Exception as e:
+            print(f"[unread_catchup] Error on dialog {getattr(dialog.chat, 'id', '?')}: {e}", flush=True)
+    print(f"[unread_catchup] Queued {processed} unread chat(s) for reply.", flush=True)
+
+
 # async def check_unread(my_id: int):
 #     minTime = datetime.now() - timedelta(minutes=15)
 #     async for dxx in bot.get_dialogs():
@@ -164,4 +188,6 @@ async def test():
     await bot.stop()
 
 asyncio.get_event_loop().create_task(keepalive())
+app.config['BOT_LOOP'] = asyncio.get_event_loop()
+app.config['PROCESS_UNREAD'] = process_unread_messages
 bot.run()

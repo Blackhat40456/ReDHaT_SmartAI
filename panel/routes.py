@@ -92,10 +92,19 @@ def home():
             return redirect('/')
         enabled = request.form.get('enabled') == 'on'
         prompt = request.form.get('prompt', '')
+        was_enabled = dt.enabled
         dt.enabled = enabled
         dt.prompt = prompt
         db.session.commit()
+        set_data()  # refresh immediately, don't wait for the delayed background refresh
         flash('Settings saved', 'success')
+
+        if enabled and not was_enabled:
+            loop = app.config.get('BOT_LOOP')
+            process_unread = app.config.get('PROCESS_UNREAD')
+            if loop and process_unread:
+                asyncio.run_coroutine_threadsafe(process_unread(), loop)
+                flash('Catching up on unread messages...', 'success')
     
     return render_template('home.html', enabled=dt.enabled, prompt=dt.prompt)
 
