@@ -3,48 +3,74 @@ import asyncio, random, json, filetype, random
 from .chat_manager import ChatManager
 from base64 import b64encode
 
+# Tried in order for a given key. If a model is deprecated/unavailable (404),
+# the next one is tried automatically before giving up on that key.
+# NOTE: Google retires Gemini models frequently — if these all start 404ing,
+# check https://ai.google.dev/gemini-api/docs/models for current free-tier names.
+GEMINI_MODELS = [
+    'gemini-flash-lite-latest',   # auto-updating alias, most future-proof
+    'gemini-2.5-flash-lite',
+    'gemini-3.1-flash-lite',
+    'gemini-flash-latest',        # auto-updating alias
+    'gemini-2.5-flash',
+]
+
 
 async def getGeminiResponse(chat: ChatManager, key: str, tools: list = None, n = 0):
     gemTools = None
     if tools:
         gemTools = [{'functionDeclarations': [t['function'] for t in tools]}]
-        
-    try:
-        async with AsyncClient(verify=False, follow_redirects=True, timeout=Timeout(connect=10, read=180, write=30, pool=10)) as s:
-            r = await s.post("https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent", params=dict(key=key), json=chat.gemini_json | dict(
-                generationConfig=dict(
-                    temperature=1.3, # 0-2
-                    max_output_tokens=1024
-                )
-            ) | (dict(tools=gemTools) if gemTools else dict()))
 
-            if r.status_code == 500 and n < 5 and tools: return await getGeminiResponse(chat, key, tools, n + 1)
-            funcResp = []
-            for part in r.json()['candidates'][0]['content']['parts']:
-                if fc := part.get('functionCall'):
-                    funcResp.append(dict(id=f'funcCall_{random.randint(100000, 999999)}', type='function', function=dict(name=fc['name'], arguments=json.dumps(fc['args']))))
-            if funcResp: return funcResp
-            return '\n'.join(part.get('text', '') for part in r.json()['candidates'][0]['content']['parts'])
-    except KeyError: raise Exception(f'Cannot get gemini response with key "{key}", {r.status_code} - {r.text}')
-    except TypeError: raise Exception(f'Cannot get gemini response with key "{key}", {r.status_code} - {r.text}')
+    r = None
+    for model_idx, model in enumerate(GEMINI_MODELS):
+        try:
+            async with AsyncClient(verify=False, follow_redirects=True, timeout=Timeout(connect=10, read=180, write=30, pool=10)) as s:
+                r = await s.post(f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent", params=dict(key=key), json=chat.gemini_json | dict(
+                    generationConfig=dict(
+                        temperature=1.3, # 0-2
+                        max_output_tokens=1024
+                    )
+                ) | (dict(tools=gemTools) if gemTools else dict()))
+
+                if r.status_code == 404 and model_idx < len(GEMINI_MODELS) - 1:
+                    continue  # this model is gone, try the next one with the same key
+                if r.status_code == 500 and n < 5 and tools: return await getGeminiResponse(chat, key, tools, n + 1)
+                funcResp = []
+                for part in r.json()['candidates'][0]['content']['parts']:
+                    if fc := part.get('functionCall'):
+                        funcResp.append(dict(id=f'funcCall_{random.randint(100000, 999999)}', type='function', function=dict(name=fc['name'], arguments=json.dumps(fc['args']))))
+                if funcResp: return funcResp
+                return '\n'.join(part.get('text', '') for part in r.json()['candidates'][0]['content']['parts'])
+        except KeyError:
+            if r is not None and r.status_code == 404 and model_idx < len(GEMINI_MODELS) - 1: continue
+            raise Exception(f'Cannot get gemini response with key "{key}", {r.status_code} - {r.text}')
+        except TypeError:
+            raise Exception(f'Cannot get gemini response with key "{key}", {r.status_code} - {r.text}')
 
 
 async def getGeminiStoT(audio: bytes, key: str):
     ft = filetype.guess(audio)
-    try:
-        async with AsyncClient(verify=False, follow_redirects=True, timeout=Timeout(connect=10, read=180, write=30, pool=10)) as s:
-            r = await s.post("https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent", params=dict(key=key), json=dict(
-                contents=[dict(
-                    role='user',
-                    parts=[
-                        dict(text='Transcribe this audio file'),
-                        dict(inline_data=dict(mime_type=ft.mime, data=b64encode(audio).decode()))
-                    ]
-                )]
-            ))
-            return '\n'.join(part.get('text', '') for part in r.json()['candidates'][0]['content']['parts'])
-    except KeyError: raise Exception(f'Speech to Text: Cannot get gemini response with key "{key}", {r.status_code} - {r.text}')
-    except TypeError: raise Exception(f'Speech to Text: Cannot get gemini response with key "{key}", {r.status_code} - {r.text}')
+    r = None
+    for model_idx, model in enumerate(GEMINI_MODELS):
+        try:
+            async with AsyncClient(verify=False, follow_redirects=True, timeout=Timeout(connect=10, read=180, write=30, pool=10)) as s:
+                r = await s.post(f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent", params=dict(key=key), json=dict(
+                    contents=[dict(
+                        role='user',
+                        parts=[
+                            dict(text='Transcribe this audio file'),
+                            dict(inline_data=dict(mime_type=ft.mime, data=b64encode(audio).decode()))
+                        ]
+                    )]
+                ))
+                if r.status_code == 404 and model_idx < len(GEMINI_MODELS) - 1:
+                    continue
+                return '\n'.join(part.get('text', '') for part in r.json()['candidates'][0]['content']['parts'])
+        except KeyError:
+            if r is not None and r.status_code == 404 and model_idx < len(GEMINI_MODELS) - 1: continue
+            raise Exception(f'Speech to Text: Cannot get gemini response with key "{key}", {r.status_code} - {r.text}')
+        except TypeError:
+            raise Exception(f'Speech to Text: Cannot get gemini response with key "{key}", {r.status_code} - {r.text}')
 
 
 if __name__ == '__main__':

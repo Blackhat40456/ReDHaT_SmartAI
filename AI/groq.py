@@ -2,26 +2,44 @@ from httpx import AsyncClient, Timeout
 import asyncio, random, json, filetype
 from .chat_manager import ChatManager
 
+# Tried in order for a given key. If a model is deprecated/unavailable (404),
+# the next one is tried automatically before giving up on that key.
+# NOTE: Groq deprecates models frequently — if these all start 404ing, check
+# https://console.groq.com/docs/models for current names.
+GROQ_MODELS = [
+    'openai/gpt-oss-20b',
+    'openai/gpt-oss-120b',
+    'llama-3.3-70b-versatile',
+    'meta-llama/llama-4-scout-17b-16e-instruct',
+]
+
 
 async def getGroqResponse(chat: ChatManager, key: str, tools: list = None):
     exExc = ''
-    try:
-        async with AsyncClient(verify=False, follow_redirects=True, timeout=Timeout(connect=10, read=180, write=30, pool=10)) as s:
-            r = await s.post("https://api.groq.com/openai/v1/chat/completions", headers={'Authorization': f'Bearer {key}'}, json=dict(
-                model='meta-llama/llama-4-scout-17b-16e-instruct',
-                temperature=1.3, # 0-2
-                max_completion_tokens=1024,
-                top_p=0.9,
-                stream=False,
-                stop=None,
-                messages=chat.truncated_json(27_000)
-            ) | (dict(tools=tools, tool_choice="auto") if tools else dict()))
-            if r.status_code == 413: exExc = f' Token: {chat.token_count} -'
-            rd = random.choice(r.json()['choices'])['message']
-            if 'tool_calls' in rd: return rd['tool_calls']
-            return rd['content']
-    except KeyError: raise Exception(f'Cannot get groq response with key "{key}",{exExc} {r.status_code} - {r.text}')
-    except TypeError: raise Exception(f'Cannot get groq response with key "{key}",{exExc} {r.status_code} - {r.text}')
+    r = None
+    for model_idx, model in enumerate(GROQ_MODELS):
+        try:
+            async with AsyncClient(verify=False, follow_redirects=True, timeout=Timeout(connect=10, read=180, write=30, pool=10)) as s:
+                r = await s.post("https://api.groq.com/openai/v1/chat/completions", headers={'Authorization': f'Bearer {key}'}, json=dict(
+                    model=model,
+                    temperature=1.3, # 0-2
+                    max_completion_tokens=1024,
+                    top_p=0.9,
+                    stream=False,
+                    stop=None,
+                    messages=chat.truncated_json(27_000)
+                ) | (dict(tools=tools, tool_choice="auto") if tools else dict()))
+                if r.status_code == 404 and model_idx < len(GROQ_MODELS) - 1:
+                    continue  # this model is gone/inaccessible, try the next one with the same key
+                if r.status_code == 413: exExc = f' Token: {chat.token_count} -'
+                rd = random.choice(r.json()['choices'])['message']
+                if 'tool_calls' in rd: return rd['tool_calls']
+                return rd['content']
+        except KeyError:
+            if r is not None and r.status_code == 404 and model_idx < len(GROQ_MODELS) - 1: continue
+            raise Exception(f'Cannot get groq response with key "{key}",{exExc} {r.status_code} - {r.text}')
+        except TypeError:
+            raise Exception(f'Cannot get groq response with key "{key}",{exExc} {r.status_code} - {r.text}')
 
 
 async def getGroqStoT(audio: bytes, key: str):
