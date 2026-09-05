@@ -7,15 +7,20 @@ from contextlib import asynccontextmanager
 from sentence_splitter import split
 from datetime import datetime, timedelta
 from web import app
-import io, asyncio, random, json
+import io, asyncio, random, json, os
 import nest_asyncio
 nest_asyncio.apply()
 
 
 MAX_USER_MSG = 20
-REDHAT_SESSION = "BQFYoXsAW3Tto_Qh_EARPnnLciyErArxkZySR7iLPNZws1_abUlzEdG2ny2gb7hYXVMKoiyJaGjIozMOeHlfxsBheR78NJFccs4qroY4FNyvO3FYElWSrD7IK92NGbeHla1wffDZe4ymiFUpMdnwGG7F96UYyGjMMz0pfG_ju1VjKBaX9tz4TvmWYyGbjg1MS5Y13amT6_UJ97gKhvCDkio5sOb4UBRiTVj4DDgZhq4OJtYfw1WZjwN9n9aP0hDR7i2IGS9MoKkRxQH4ZGweRNLLqSz01CnUwTnIwrEDIMXkM6sdwHr7tR1tl0W-igLnscvoTypz9MPXjA0C6s1lyMiYP3-YoAAAAAIEpftgAA"
-LUCKY_SESSION = "BQGNedwAdo4zugl9OB9kVuwumjx_3edEtAyXx481YKk-WRqBloxL4RuH4EM4r-ML5UNArQkk-spHTpMbKu958kjSUTwzNtoUZSVlA6gkL9vxxxGyoR8pd-l7wLEG6eMmMXETfqU96_d_aEKicDZTBzQT0qSi53j58taTOfusFlZphRl2kj2E4pU5zv4Z4xnY2m_lOpH5N4RfTdYTX68pb3EEppogEyFW1xY7LFLogUdooCyDaOHE2R4hrFEqj1CXQLk6EMyPQAZhdl78ViDB2mcVJN-Om5F0Za1YQXhVSGhc2KXF70QNysFskABal6zIjGuOvJwdsiLa8JMPxEWmCU40EZlTiwAAAAHOVTs6AA"
-bot = Client('ReDHaT', 22585723, "d82628bac795eab81e4b3430819aa026", session_string=REDHAT_SESSION)
+REDHAT_SESSION = os.environ.get('REDHAT_SESSION')
+LUCKY_SESSION = os.environ.get('LUCKY_SESSION')
+API_ID = os.environ.get('API_ID')
+API_HASH = os.environ.get('API_HASH')
+if not REDHAT_SESSION or not API_ID or not API_HASH:
+    raise RuntimeError('Missing required environment variable(s): REDHAT_SESSION, API_ID, API_HASH must all be set.')
+API_ID = int(API_ID)
+bot = Client('ReDHaT', API_ID, API_HASH, session_string=REDHAT_SESSION)
 
 Settings = lambda: app.config['AI_SETTINGS']
 ApiKeys = lambda: app.config['AI_API_KEYS']

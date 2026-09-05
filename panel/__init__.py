@@ -1,11 +1,17 @@
+import os
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 
 app = Flask(__name__)
-app.secret_key = 'oilr0-jei4i8-isiwiri-mri48wufj'
-app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://neondb_owner:npg_0HSQqacziG7F@ep-aged-unit-a12kc26d-pooler.ap-southeast-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require'
+FLASK_SECRET_KEY = os.environ.get('FLASK_SECRET_KEY')
+DATABASE_URL = os.environ.get('DATABASE_URL')
+ADMIN_PASSWORD = os.environ.get('ADMIN_PASSWORD')
+if not FLASK_SECRET_KEY or not DATABASE_URL or not ADMIN_PASSWORD:
+    raise RuntimeError('Missing required environment variable(s): FLASK_SECRET_KEY, DATABASE_URL, ADMIN_PASSWORD must all be set.')
+app.secret_key = FLASK_SECRET_KEY
+app.config['SQLALCHEMY_DATABASE_URI'] = DATABASE_URL
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.config['PASSWORD'] = '@Manbadman365#'
+app.config['PASSWORD'] = ADMIN_PASSWORD
 
 db = SQLAlchemy(app)
 
