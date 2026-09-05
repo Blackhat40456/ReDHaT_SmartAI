@@ -117,7 +117,6 @@ class ChatManager:
             if all_parts:
                 gemRole = 'user'
                 if m['role'] == 'assistant': gemRole = 'model'
-                elif m['role'] == 'tool': gemRole = 'function'
                 gemData['contents'].append(dict(parts=all_parts, role=gemRole))
         return gemData
 

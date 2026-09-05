@@ -4,7 +4,7 @@ asyncio
 flask
 flask-sqlalchemy
 waitress
-pyrofork
+kurigram
 psycopg2
 tgcrypto
 tiktoken

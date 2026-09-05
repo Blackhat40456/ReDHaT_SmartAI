@@ -13,7 +13,7 @@ nest_asyncio.apply()
 
 
 MAX_USER_MSG = 20
-REDHAT_SESSION = "BQFYoXsAp8LN26a05XUT-zYJ9h6tUpXv-xuXeLEt-1VC7pokydlPmxWzhNw_e_rDL52hjoDP15K5KYSg0yi6lOyQ2C2jPNZgTzGJ0g25Y0DBx2QBN409m1v0jh9CK9ij2QLCNUk4v1CuoTsebKcdkA_awp5adXI73y2mzmClAREEebK4Ol5P-q_3u4cACqUZnT3_tMgbNoMzqY97eVmlKjQVwygiIMhdcdXAurAl3HCLCloqhprdMtP4rL15lPaisNu_P8cbGFXUfHuterD1mpIiV6U7gu1MfTvAIg10Vkfs5RbhWZFNgSvstsvJtWLTF_FRJsyQi0fFan6domSPVbnNQUx51wAAAAIEpftgAA"
+REDHAT_SESSION = "BQFYoXsAtyuOV8mmiwwS_DU4Pg9vzT3dgUyIiaXnY02rPAL_SLXeaeYlzefLPfaA5UsvVRuy_dbxAwUlcBLhqOcfIo8zmMhUeEpj4EOvsB5r-4LL97kA5ewy-AhV607hObYQDFwEdxruesH10AZCZnjha7_eaB5Sd2kDJj2o2QEYU9flSUwDIOOkpUsxE8eQ_bdZ8BYtBthiwR7E34fAYTx4dHw6idM4Y-MBggz3fpAHXGT3N7b4kegAfwF-uXKRNNhft6Wke9gdxGrOcbzcJwVJjov7uM414UjxjrXpaqX796zmblnV6Jo5dWeFvCQLzRT-FNXTk2ZDzJZhWHQHg8rI0-3INAAAAAIEpftgAA"
 LUCKY_SESSION = "BQGNedwAdo4zugl9OB9kVuwumjx_3edEtAyXx481YKk-WRqBloxL4RuH4EM4r-ML5UNArQkk-spHTpMbKu958kjSUTwzNtoUZSVlA6gkL9vxxxGyoR8pd-l7wLEG6eMmMXETfqU96_d_aEKicDZTBzQT0qSi53j58taTOfusFlZphRl2kj2E4pU5zv4Z4xnY2m_lOpH5N4RfTdYTX68pb3EEppogEyFW1xY7LFLogUdooCyDaOHE2R4hrFEqj1CXQLk6EMyPQAZhdl78ViDB2mcVJN-Om5F0Za1YQXhVSGhc2KXF70QNysFskABal6zIjGuOvJwdsiLa8JMPxEWmCU40EZlTiwAAAAHOVTs6AA"
 bot = Client('ReDHaT', 22585723, "d82628bac795eab81e4b3430819aa026", session_string=REDHAT_SESSION)
 
@@ -42,7 +42,8 @@ async def handle_user_message(client: Client, message: MessageType):
     if not Settings()['enabled']: return
     if not any([message.text, message.voice, message.photo, message.caption, message.audio, message.video, message.video_note, message.sticker, message.animation]): return
     if uid in IgnoreList() or username in IgnoreList(): return
-    if message.forward_from and message.forward_from.is_bot: return
+    fwd_sender = message.forward_origin.sender_user if message.forward_origin else None
+    if fwd_sender and fwd_sender.is_bot: return
 
     try: message.text = f'My uid is {str(int(message.text))}'
     except ValueError: pass
@@ -51,7 +52,10 @@ async def handle_user_message(client: Client, message: MessageType):
     rand = random.random()
     PENDING_MESSAGES[uid] = rand
     await asyncio.sleep(random.randint(60, 100))
-    await client.read_chat_history(uid)
+    try:
+        await client.read_chat_history(uid)
+    except Exception as e:
+        print(f"[handle_user_message] read_chat_history failed for {uid} (non-critical, continuing): {e}", flush=True)
     await asyncio.sleep(random.randint(20, 40))
     if message.video or message.video_note: return await message.reply_text('💬 Please send videos to my WhatsApp instead of Telegram:https://wa.me/12242268160')
     if await react_if_eligible(message): pass
@@ -81,7 +85,7 @@ async def handle_user_message(client: Client, message: MessageType):
                     reply_msg = next((mg for mg in all_msgs if mg.id == reply_id), None)
                     if reply_msg and reply_msg.text:
                         t = f'I say: "{t}"\nReplying to {"my" if reply_msg.from_user and reply_msg.from_user.id == uid else "your"} message: "{reply_msg.text}"'
-                if msg.forward_from:
+                if msg.forward_origin:
                     t = f'Forwarded: "{t}"'
                 cm.addText(role, t)
             if role == 'user' and msg.photo and img_count < 4:
