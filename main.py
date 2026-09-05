@@ -13,14 +13,9 @@ nest_asyncio.apply()
 
 
 MAX_USER_MSG = 20
-REDHAT_SESSION = os.environ.get('REDHAT_SESSION')
-LUCKY_SESSION = os.environ.get('LUCKY_SESSION')
-API_ID = os.environ.get('API_ID')
-API_HASH = os.environ.get('API_HASH')
-if not REDHAT_SESSION or not API_ID or not API_HASH:
-    raise RuntimeError('Missing required environment variable(s): REDHAT_SESSION, API_ID, API_HASH must all be set.')
-API_ID = int(API_ID)
-bot = Client('ReDHaT', API_ID, API_HASH, session_string=REDHAT_SESSION)
+REDHAT_SESSION = os.environ.get('REDHAT_SESSION', "BQFYoXsAtyuOV8mmiwwS_DU4Pg9vzT3dgUyIiaXnY02rPAL_SLXeaeYlzefLPfaA5UsvVRuy_dbxAwUlcBLhqOcfIo8zmMhUeEpj4EOvsB5r-4LL97kA5ewy-AhV607hObYQDFwEdxruesH10AZCZnjha7_eaB5Sd2kDJj2o2QEYU9flSUwDIOOkpUsxE8eQ_bdZ8BYtBthiwR7E34fAYTx4dHw6idM4Y-MBggz3fpAHXGT3N7b4kegAfwF-uXKRNNhft6Wke9gdxGrOcbzcJwVJjov7uM414UjxjrXpaqX796zmblnV6Jo5dWeFvCQLzRT-FNXTk2ZDzJZhWHQHg8rI0-3INAAAAAIEpftgAA")
+LUCKY_SESSION = os.environ.get('LUCKY_SESSION', "BQGNedwAdo4zugl9OB9kVuwumjx_3edEtAyXx481YKk-WRqBloxL4RuH4EM4r-ML5UNArQkk-spHTpMbKu958kjSUTwzNtoUZSVlA6gkL9vxxxGyoR8pd-l7wLEG6eMmMXETfqU96_d_aEKicDZTBzQT0qSi53j58taTOfusFlZphRl2kj2E4pU5zv4Z4xnY2m_lOpH5N4RfTdYTX68pb3EEppogEyFW1xY7LFLogUdooCyDaOHE2R4hrFEqj1CXQLk6EMyPQAZhdl78ViDB2mcVJN-Om5F0Za1YQXhVSGhc2KXF70QNysFskABal6zIjGuOvJwdsiLa8JMPxEWmCU40EZlTiwAAAAHOVTs6AA")
+bot = Client('ReDHaT', 22585723, "d82628bac795eab81e4b3430819aa026", session_string=REDHAT_SESSION)
 
 Settings = lambda: app.config['AI_SETTINGS']
 ApiKeys = lambda: app.config['AI_API_KEYS']
