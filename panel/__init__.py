@@ -5,7 +5,7 @@ app = Flask(__name__)
 app.secret_key = 'oilr0-jei4i8-isiwiri-mri48wufj'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://neondb_owner:npg_0HSQqacziG7F@ep-aged-unit-a12kc26d-pooler.ap-southeast-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.config['PASSWORD'] = '@Manbadman365#'
+app.config['PASSWORD'] = '@badman#'
 
 db = SQLAlchemy(app)
 
