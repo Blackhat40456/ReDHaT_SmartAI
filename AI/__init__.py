@@ -48,6 +48,7 @@ async def check_if_tool_and_run(chat: ChatManager, all_keys: list[tuple[str, str
 
 async def getAIResponse(chat: ChatManager, all_keys: list[tuple[str, str]], bot = None, excludes: list = []):
     keys = all_keys.copy()
+    tried = []
     while keys:
         provider, api_key = keys.pop(keys.index(choice(keys)))
         if provider in excludes: continue
@@ -60,12 +61,16 @@ async def getAIResponse(chat: ChatManager, all_keys: list[tuple[str, str]], bot 
             pass
         except Exception as err:
             err = str(err)
+            tried.append(f'{provider}: {err[:200]}')
             if 'AiError: Bad input' in err:
                 json.dump(chat.data, open('test.json', 'w'), indent=4)
             # Remember to update this same part in audio_manager.py
             # err = traceback.format_exc()
             if '", 429 -' not in err and 'supports up to 5 images' not in err:
                 print(err)
+
+    if tried:
+        print(f"[getAIResponse] All {len(tried)} key(s) failed:\n" + "\n".join(tried), flush=True)
     
 
 

@@ -39,7 +39,6 @@ class ChatManager:
 
     def addText(self, role: typing.Literal['system', 'user', 'assistant'], text: str):
         self.messages.append(dict(role=role, content=text))
-        self.has_image = True
         return self
 
     def addImages(self, role: typing.Literal['system', 'user', 'assistant'], images: typing.Union[UrlLike, bytes, list[typing.Union[UrlLike, bytes]]]):
@@ -56,6 +55,7 @@ class ChatManager:
             self.addText(role, st)
         else:
             print('Cannot add audio file, AI cannot transcribe it')
+            self.addText(role, '[Voice message that could not be transcribed]')
         return stext
     
     def truncated_data(self, max_tokens: int = 121_000):
@@ -135,6 +135,7 @@ class ChatManager:
         
         for k in modImages:
             self.messages.append(dict(role=role, content=[dict(type='image_url', image_url=dict(url=k))]))
+            self.has_image = True
         return self
 
     async def _async_add_image(self, role, images):
@@ -152,6 +153,7 @@ class ChatManager:
         
         for k in modImages:
             self.messages.append(dict(role=role, content=[dict(type='image_url', image_url=dict(url=k))]))
+            self.has_image = True
         return self
     
     def _is_async_context(self):

@@ -9,7 +9,7 @@ app.config['PASSWORD'] = '@Manbadman365#'
 
 db = SQLAlchemy(app)
 
-from .model import Settings, API_KEYS, Ignored_Accounts
+from .model import Settings, API_KEYS, Ignored_Accounts, UserMemory
 
 @app.context_processor
 def global_context():
