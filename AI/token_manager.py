@@ -3,33 +3,6 @@ import json
 
 ENCODING = tiktoken.encoding_for_model("gpt-4")
 
-# A base64 image is huge as text, but models charge only a small fixed amount for it.
-# Counting the raw base64 made every image look enormous, which made truncate_messages
-# throw away the image AND the whole earlier conversation.
-IMAGE_TOKEN_COST = 1200
-
-
-def _is_image_message(message) -> bool:
-    content = message.get("content") if isinstance(message, dict) else None
-    return isinstance(content, list) and any(
-        isinstance(p, dict) and (p.get("type") == "image_url" or "image_url" in p) for p in content
-    )
-
-
-def _content_list_tokens(content, encoding) -> int:
-    total = 0
-    for part in content:
-        if isinstance(part, dict):
-            if part.get("type") == "image_url" or "image_url" in part:
-                total += IMAGE_TOKEN_COST
-            elif "text" in part:
-                total += len(encoding.encode(str(part["text"])))
-            else:
-                total += len(encoding.encode(json.dumps(part)))
-        else:
-            total += len(encoding.encode(str(part)))
-    return total
-
 def count_tokens(message, encoding=ENCODING):
     if isinstance(message, str):
         message = dict(content=message)
@@ -42,7 +15,8 @@ def count_tokens(message, encoding=ENCODING):
         if isinstance(content, str):
             total_tokens += len(encoding.encode(content))
         elif isinstance(content, list):
-            total_tokens += _content_list_tokens(content, encoding)
+            content_str = json.dumps(content)
+            total_tokens += len(encoding.encode(content_str))
 
     if "tool_calls" in message:
         tool_calls_str = json.dumps(message["tool_calls"])
@@ -67,8 +41,6 @@ def truncate_messages(messages: list, max_tokens: int):
         if total_tokens + token_count <= max_tokens:
             truncated.append(message)
             total_tokens += token_count
-        elif _is_image_message(message):
-            continue  # an old image that doesn't fit: skip only it, keep the text history
         else:
             break
 
